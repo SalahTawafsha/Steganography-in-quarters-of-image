@@ -5,8 +5,10 @@ import os
 
 
 def main():
+    # Make arg parser to use program as Command-line interface (CLI)
     parser = argparse.ArgumentParser()
 
+    # add generate stego arguments
     parser.add_argument("-g",
                         '--generate-stego',
                         type=argparse.FileType('r'),
@@ -14,6 +16,7 @@ def main():
                         metavar=("original_file", "stego_file"),
                         )
 
+    # add extract stego arguments
     parser.add_argument('-e',
                         "--extract-file",
                         type=argparse.FileType('r'),
@@ -22,6 +25,7 @@ def main():
     args = parser.parse_args()
 
     if args.generate_stego:
+        # get files from arguments
         original_file_path, stego_file_path = args.generate_stego
 
         stego_image_generator = StegoImageGenerator(original_file_path.name, stego_file_path.name)
@@ -32,6 +36,7 @@ def main():
         image.save(f"{file_name}-output{file_extension}")
 
     if args.extract_file:
+        # get stego file from argument
         stego_file_path = args.extract_file.name
 
         stego_image_extractor = StegoImageExtractor(stego_file_path)
