@@ -1,41 +1,29 @@
-import os
-
 from PIL import Image
 
 
 class StegoImageGenerator:
-    def __init__(self, original_file_path: str, image_file_path: str):
-        self.original_file_path = original_file_path
-        self.image_file_path = image_file_path
-        # extract files and validate that we can hide the message in the image
-        self.__extract_and_validate()
+    def __init__(self, binary_data_to_hide: bytes, image_file_path: str):
+        # image class variable
+        self.img = Image.open(image_file_path)
+        self.image_width, self.image_height = self.img.size
+
+        # store binary data and length of it
+        self.binary_data_to_hide = binary_data_to_hide
+        self.data_length = len(self.binary_data_to_hide)
+
+        # validate that we can hide binary data in the image
+        self._validate()
+
+        # current index to save
         self.data_index = 0
 
-    def __extract_and_validate(self):
-        self.img = Image.open(self.image_file_path)
-        self.image_width, self.image_height = self.img.size
-        image_size = self.image_width * self.image_height
+    def _validate(self):
+        # image pixels
+        image_pixels = self.image_width * self.image_height
 
-        with open(self.original_file_path, 'rb') as file:
-            self.binary_file_data = file.read()
-
-        file_name, file_extension = os.path.splitext(self.original_file_path)
-
-        # Convert the file_extension to bytes and complete it to 10 byte
-        file_extension_bytes = file_extension.encode('utf-8')[:10]
-        padding_size = 10 - len(file_extension_bytes)
-        if padding_size > 0:
-            file_extension_bytes += b'\x00' * padding_size
-
-        # add file_extension at the beginning of file data to store it
-        # and add signature to can determine end of file
-        self.binary_file_data = file_extension_bytes + self.binary_file_data + b'\x00\x10\x20\x30\x40'
-
-        # get data length and check if we can hide it in image bytes
-        self.data_length = len(self.binary_file_data)
-
-        # (image_size * len(self.img.getbands())) is size of image * number of channels (RGB, RGBA, ...)
-        if self.data_length > (image_size * len(self.img.getbands())) / 8:
+        # (image_pixels * len(self.img.getbands())) is size of image * number of channels (RGB, RGBA, ...),
+        # / 8 because each pixel channel is one byte, and we want to store each byte of data in 8 channels of image
+        if self.data_length > (image_pixels * len(self.img.getbands())) / 8:
             raise ValueError("File too large to encode in the given image")
 
     # hide data in range of image pixels and return True if data Not end or False if end
@@ -54,7 +42,7 @@ class StegoImageGenerator:
                         # then make or operation with current data index shifted right by current bit index
                         # and the & 1 is to ignore value of byte expect the least significant bit (value & 0000 0001)
                         pixel[color_channel] = pixel[color_channel] & ~1 | (
-                                (self.binary_file_data[self.data_index] >> bit_index) & 1)
+                                (self.binary_data_to_hide[self.data_index] >> bit_index) & 1)
 
                         # if it's not zero then decrement to get next upper significant bit
                         if bit_index != 0:

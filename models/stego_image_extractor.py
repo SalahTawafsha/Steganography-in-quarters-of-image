@@ -2,12 +2,13 @@ from PIL import Image
 
 
 class StegoImageExtractor:
-    def __init__(self, stego_image_path: str):
+    def __init__(self, stego_image_path: str, is_file: bool = False):
         self.stego_image_path = stego_image_path
         self.binary_file_data = bytearray()
         self.file_extension = ".txt"
         self.data_index = 0
         self.current_byte = 0
+        self.is_file = is_file
 
     def _extract_data(self, img: Image, from_x_pixel: int, to_x_pixel: int, from_y_pixel: int, to_y_pixel: int):
         for x in range(from_x_pixel, to_x_pixel):
@@ -32,13 +33,9 @@ class StegoImageExtractor:
                     self.current_byte = (self.current_byte << 1) | (pixel[color_channel] & 1)
                     self.data_index += 1
 
-                    # when data_index reach to 88 then we end file extension bytes so extract extension
-                    if self.data_index == 88:
-                        self.file_extension = self.binary_file_data[:10].rstrip(b'\x00').decode('utf-8')
-                        self.binary_file_data = bytearray()
         return True
 
-    def decode_file(self):
+    def extract_data(self):
         # Open the stego image
         img = Image.open(self.stego_image_path)
         width, height = img.size
@@ -55,5 +52,9 @@ class StegoImageExtractor:
                 if self._extract_data(img, half_image_width, width, half_image_height, height):
                     # hide data in third quarter
                     self._extract_data(img, 0, half_image_width, half_image_height, height)
+
+        if self.is_file:
+            self.file_extension = self.binary_file_data[:10].rstrip(b'\x00').decode('utf-8')
+            self.binary_file_data = self.binary_file_data[10:]
 
         return self.binary_file_data[:-5], self.file_extension
