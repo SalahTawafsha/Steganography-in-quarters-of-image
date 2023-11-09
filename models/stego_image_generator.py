@@ -44,7 +44,7 @@ class StegoImageGenerator:
                         pixel[color_channel] = pixel[color_channel] & ~1 | (
                                 (self.binary_data_to_hide[self.data_index] >> bit_index) & 1)
 
-                        # if it's not zero then decrement to get next upper significant bit
+                        # if it's not zero then decrement to get next bit
                         if bit_index != 0:
                             bit_index -= 1
                         # else then we end the byte so go next byte by increment data_index and reset bit_index

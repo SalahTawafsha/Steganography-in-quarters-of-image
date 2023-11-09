@@ -5,7 +5,7 @@ class StegoImageExtractor:
     def __init__(self, stego_image_path: str, is_file: bool = False):
         self.stego_image_path = stego_image_path
         self.binary_file_data = bytearray()
-        self.file_extension = ".txt"
+        self.file_extension = "not file"
         self.data_index = 0
         self.current_byte = 0
         self.is_file = is_file
@@ -25,7 +25,7 @@ class StegoImageExtractor:
                         self.current_byte = 0
 
                         # check if my end of data signature reached and return false to stop extraction
-                        if self.data_index > 80 and self.binary_file_data[-5:] == bytearray([0, 16, 32, 48, 64]):
+                        if self.binary_file_data[-5:] == bytearray([0, 16, 32, 48, 64]):
                             return False
 
                     # shift left to can add new bit and make or with pixel
@@ -35,7 +35,7 @@ class StegoImageExtractor:
 
         return True
 
-    def extract_data(self):
+    def recover_data(self):
         # Open the stego image
         img = Image.open(self.stego_image_path)
         width, height = img.size

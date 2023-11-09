@@ -1,13 +1,9 @@
-import hashlib
-
-
-class FileHashCode:
+class FileHashCodeGenerator:
     def __init__(self, file_path: str):
         self.file_path = file_path
 
     def generate_hash(self) -> str:
-        # Create a hash object using SHA-256 algorithm
-        sha256_hash = hashlib.sha256()
+        hash_value = 0
 
         # Open the file in binary mode and read it in chunks
         with open(self.file_path, "rb") as file:
@@ -19,13 +15,14 @@ class FileHashCode:
                 if not chunk:
                     break
 
-                # Update the hash object with the chunk of data
-                sha256_hash.update(chunk)
+                # Update the hash_value by add ones representation
+                for byte in chunk:
+                    binary_representation = bin(byte)
+                    hash_value += binary_representation.count('1')
 
-        # Get the hexadecimal representation of the hash
-        file_hash = sha256_hash.hexdigest()
+        return hash_value
 
-        return file_hash
-
-    def is_file_hash(self, hash_code: str) -> bool:
+    def is_for_file(self, hash_code: int) -> bool:
         return self.generate_hash() == hash_code
+
+

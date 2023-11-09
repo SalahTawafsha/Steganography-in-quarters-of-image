@@ -1,7 +1,9 @@
 import os
+from abc import ABC, abstractmethod
 
 
-class BinaryDataGenerator:
+class BinaryDataGenerator(ABC):
+    @abstractmethod
     def generate_binary_data(self):
         pass
 
@@ -28,12 +30,17 @@ class FileBinaryDataGenerator(BinaryDataGenerator):
         return file_extension_bytes + self.binary_file_data + b'\x00\x10\x20\x30\x40'
 
 
-class StringBinaryDataGenerator(BinaryDataGenerator):
-    def __init__(self, string_data: str):
-        self.string_data = string_data
-        self.binary_string_data = b""
+class HashBinaryDataGenerator(BinaryDataGenerator):
+    def __init__(self, hash_value: int):
+        self.hash_value = hash_value
+        self.binary_data = b""
 
     def generate_binary_data(self):
-        self.binary_string_data = self.string_data.encode('utf-8')
+        # Determine the number of bytes required
+        num_bytes = (self.hash_value.bit_length() + 7) // 8
+
+        # Convert integer to bytes
+        self.binary_data = self.hash_value.to_bytes(num_bytes, byteorder='big')
+
         # add signature to can determine end of data
-        return self.binary_string_data + b'\x00\x10\x20\x30\x40'
+        return self.binary_data + b'\x00\x10\x20\x30\x40'
