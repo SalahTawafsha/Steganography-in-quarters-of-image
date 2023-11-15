@@ -23,8 +23,12 @@ class StegoImageGenerator:
 
         # (image_pixels * len(self.img.getbands())) is size of image * number of channels (RGB, RGBA, ...),
         # / 8 because each pixel channel is one byte, and we want to store each byte of data in 8 channels of image
-        if self.data_length > (image_pixels * len(self.img.getbands())) / 8:
-            raise ValueError("File too large to encode in the given image")
+        max_size_to_hide = (image_pixels * len(self.img.getbands())) / 8
+
+        # check if we can hide file in image
+        if self.data_length > max_size_to_hide:
+            raise ValueError(
+                f"File too large to encode in the given image, max file size to hide = {max_size_to_hide} byte")
 
     # hide data in range of image pixels and return True if data Not end or False if end
     def _hide_data(self, from_x_pixel: int, to_x_pixel: int, from_y_pixel: int, to_y_pixel: int):
